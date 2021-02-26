@@ -1,8 +1,6 @@
 <template>
     <div>
-        <p class="homeText">
-            Syötä tapahtuma
-        </p>
+        <p class="homeText">Syötä tapahtuma</p>
         <br />
         <form @submit.prevent="postEvent">
             Tapahtuman nimi:
@@ -10,15 +8,14 @@
             Tärkeä?
             <input type="checkbox" v-model="important" />
             <br />
-            <button type="postEvent">
-                Lähetä
-            </button>
+            <button type="postEvent">Lähetä</button>
         </form>
-        <ul v-if="error && error.message">
-            {{
-                error.message
-            }}
-        </ul>
+        <div v-if="success">
+            {{ success }}
+        </div>
+        <div v-if="error">
+            {{ error }}
+        </div>
     </div>
 </template>
 <script>
@@ -30,14 +27,30 @@ export default {
             event: "",
             important: false,
             error: null,
+            success: false,
         }
     },
     methods: {
         async postEvent() {
-            await axios.post("http://localhost:3000/notes", {
-                content: this.event,
-                important: this.important,
-            })
+            try {
+                if (this.event === "") {
+                    throw "Tapahtuman nimi ei voi olla tyhjä"
+                } else {
+                    await axios.post("http://localhost:3000/notes", {
+                        content: this.event,
+                        important: this.important,
+                    })
+                    this.event = ""
+                    this.important = false
+
+                    this.success = "Tietojen lähetys onnistui"
+                    // timeout and set success back to false
+                }
+            } catch (e) {
+                console.log(e)
+                // handle axios error
+                this.error = e
+            }
         },
     },
 }
